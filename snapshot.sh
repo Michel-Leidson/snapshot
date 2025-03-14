@@ -1,16 +1,17 @@
 #!/bin/bash
 
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 <choice>"
+    echo "Select the network and node type for the snapshot:"
+    echo "1) Heimdall Mainnet"
+    echo "2) Bor Mainnet"
+    echo "3) Heimdall Amoy"
+    echo "4) Bor Amoy"
+    echo "5) Erigon Amoy"
+    exit 1
+fi
 
-echo "Select the network and node type for the snapshot:"
-echo "1) Heimdall Mainnet"
-echo "2) Bor Mainnet"
-echo "3) Heimdall Amoy"
-echo "4) Bor Amoy"
-echo "5) Erigon Amoy"
-
-read -p "Choose the network and node type (1, 2, 3, 4, or 5): " choice
-
-choice=$(echo "$choice" | tr -d -c '0-9')
+choice=$1
 
 case $choice in
     1)
