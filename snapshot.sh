@@ -1,46 +1,35 @@
 #!/bin/bash
 
-if [ $# -ne 1 ]; then
-    echo "Usage: $0 <choice>"
-    echo "Select the network and node type for the snapshot:"
-    echo "1) Heimdall Mainnet"
-    echo "2) Bor Mainnet"
-    echo "3) Heimdall Amoy"
-    echo "4) Bor Amoy"
-    echo "5) Erigon Amoy"
+if [ $# -ne 2 ]; then
+    echo "Usage: $0 <network> <node_type>"
+    echo "Available options:"
+    echo "  Network: heimdall, bor, erigon"
+    echo "  Node type: mainnet, amoy"
+    echo "Example: $0 heimdall mainnet"
     exit 1
 fi
 
-choice=$1
+network=$1
+node_type=$2
 
-case $choice in
-    1)
-        network="heimdall"
-        node_type="mainnet"
+case "$network-$node_type" in
+    "heimdall-mainnet")
         url="https://snap.stakepool.work/snapshots-stakepool/heimdall-mainnet.tar.zst"
         ;;
-    2)
-        network="bor"
-        node_type="mainnet"
+    "bor-mainnet")
         url="https://snap.stakepool.work/snapshots-stakepool/bor-mainnet.tar.zst"
         ;;
-    3)
-        network="heimdall"
-        node_type="amoy"
+    "heimdall-amoy")
         url="https://snap.stakepool.work/snapshots-stakepool/heimdall-amoy.tar.zst"
         ;;
-    4)
-        network="bor"
-        node_type="amoy"
+    "bor-amoy")
         url="https://snap.stakepool.work/snapshots-stakepool/bor-amoy.tar.zst"
         ;;
-    5)
-        network="erigon"
-        node_type="amoy"
+    "erigon-amoy")
         url="https://snap.stakepool.work/snapshots-stakepool/erigon-amoy.tar.zst"
         ;;
     *)
-        echo "Invalid choice. Exiting."
+        echo "Invalid combination of network and node type. Exiting."
         exit 1
         ;;
 esac
