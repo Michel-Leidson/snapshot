@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x  
 
 if [ $# -ne 2 ]; then
     echo "Usage: $0 <network> <node_type>"
@@ -35,10 +36,13 @@ case "$network-$node_type" in
 esac
 
 echo "Downloading and extracting snapshot for $network - $node_type..."
-wget -q --show-progress -O - "$url" | zstd -d | tar -xf -
+
+
+curl -L --retry 5 --retry-delay 10 --http1.1 "$url" | zstd -d | tar -xf -
 
 if [ $? -eq 0 ]; then
-    echo "Snapshot for $network - $node_type has been downloaded and extracted successfully!"
+    echo "✅ Snapshot for $network - $node_type has been downloaded and extracted successfully!"
 else
-    echo "Failed to download or extract the snapshot. Please check the URL and try again."
+    echo "❌ Failed to download or extract the snapshot. Please check the URL and try again."
+    exit 1
 fi
