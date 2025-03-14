@@ -38,7 +38,7 @@ esac
 echo "Downloading and extracting snapshot for $network - $node_type..."
 
 
-wget --tries=5 --waitretry=10 --retry-connrefused --timeout=30 -O - "$url" | zstd -d | tar -xf -
+wget -c --tries=5 --waitretry=10 --retry-connrefused --timeout=30 -O - "$url" | zstd -d | tar -xf -
 
 if [ $? -eq 0 ]; then
     echo "✅ Snapshot for $network - $node_type has been downloaded and extracted successfully!"
