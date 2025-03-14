@@ -1,5 +1,4 @@
 #!/bin/bash
-set -x  # Ativa o modo de depuração
 
 if [ $# -ne 2 ]; then
     echo "Usage: $0 <network> <node_type>"
@@ -35,8 +34,8 @@ case "$network-$node_type" in
         ;;
 esac
 
-echo "Downloading snapshot for $network - $node_type..."
-curl -L "$url" | zstd -d | tar -xf - > /dev/null
+echo "Downloading and extracting snapshot for $network - $node_type..."
+wget -q -O - "$url" | zstd -d | tar -xf -
 
 if [ $? -eq 0 ]; then
     echo "Snapshot for $network - $node_type has been downloaded and extracted successfully!"
