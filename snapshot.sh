@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x  # Ativa o modo de depuração
 
 if [ $# -ne 2 ]; then
     echo "Usage: $0 <network> <node_type>"
@@ -37,4 +38,8 @@ esac
 echo "Downloading snapshot for $network - $node_type..."
 curl -L "$url" | zstd -d | tar -xf - > /dev/null
 
-echo "Snapshot for $network - $node_type has been downloaded and extracted successfully!"
+if [ $? -eq 0 ]; then
+    echo "Snapshot for $network - $node_type has been downloaded and extracted successfully!"
+else
+    echo "Failed to download or extract the snapshot. Please check the URL and try again."
+fi
