@@ -35,7 +35,7 @@ case "$network-$node_type" in
 esac
 
 echo "Downloading and extracting snapshot for $network - $node_type..."
-wget -q -O - "$url" | zstd -d | tar -xf -
+wget -q --show-progress -O - "$url" | zstd -d | tar -xf -
 
 if [ $? -eq 0 ]; then
     echo "Snapshot for $network - $node_type has been downloaded and extracted successfully!"
