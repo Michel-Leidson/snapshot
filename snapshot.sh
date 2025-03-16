@@ -38,7 +38,7 @@ esac
 echo "Downloading and extracting snapshot for $network - $node_type..."
 
 
-wget -c "$url"  -O - | zstd -d | tar -xf -
+wget -c --timeout=60 --tries=inf --inet4-only "$url"  -O - | dd bs=3G iflag=fullblock | zstdcat | tar -xf -
 
 if [ $? -eq 0 ]; then
     echo "✅ Snapshot for $network - $node_type has been downloaded and extracted successfully!"
