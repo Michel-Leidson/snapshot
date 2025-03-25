@@ -6,39 +6,37 @@ if [ $# -ne 2 ]; then
     echo "Available options:"
     echo "  Network: heimdall, bor, erigon"
     echo "  Node type: mainnet, amoy"
-    echo "Example: $0 heimdall mainnet"
+    echo "Example: $0 bor mainnet"
     exit 1
 fi
 
 network=$1
 node_type=$2
 
-case "$network-$node_type" in
-    "heimdall-mainnet")
-        url="https://snap.stakepool.work/snapshots-stakepool/heimdall-mainnet.tar.zst"
-        ;;
-    "bor-mainnet")
-        url="https://snap.stakepool.work/snapshots-stakepool/bor-mainnet.tar.zst"
-        ;;
-    "heimdall-amoy")
-        url="https://snap.stakepool.work/snapshots-stakepool/heimdall-amoy.tar.zst"
-        ;;
-    "bor-amoy")
-        url="https://snap.stakepool.work/snapshots-stakepool/bor-amoy.tar.zst"
-        ;;
-    "erigon-amoy")
-        url="https://snap.stakepool.work/snapshots-stakepool/erigon-amoy.tar.zst"
-        ;;
-    *)
-        echo "Invalid combination of network and node type. Exiting."
-        exit 1
-        ;;
-esac
+snapshot_list_url="https://snap.stakepool.work/snapshots-stakepool/list_snapshots.txt"
 
-echo "Downloading and extracting snapshot for $network - $node_type..."
+relevant_snapshots=$(curl -s "$snapshot_list_url" | grep "$network-$node_type")
 
+if [ -z "$relevant_snapshots" ]; then
+    echo "❌ No snapshots found for $network - $node_type."
+    exit 1
+fi
 
-wget -c --retry-connrefused --timeout=60 --read-timeout=120 --inet4-only "$url"  -O - | dd bs=3G iflag=fullblock | zstdcat | tar -xf -
+latest_snapshot=$(echo "$relevant_snapshots" | sort -k1,1r -k2,2r | head -n 1)
+
+if [ -z "$latest_snapshot" ]; then
+    echo "❌ Failed to determine the latest snapshot."
+    exit 1
+fi
+
+snapshot_file=$(echo "$latest_snapshot" | awk '{print $4}')
+
+url="https://snap.stakepool.work/snapshots-stakepool/$snapshot_file"
+
+echo "Downloading and extracting the latest snapshot for $network - $node_type..."
+echo "Snapshot URL: $url"
+
+wget -c --retry-connrefused --timeout=60 --read-timeout=120 --inet4-only "$url" -O - | dd bs=3G iflag=fullblock | zstdcat | tar -xf -
 
 if [ $? -eq 0 ]; then
     echo "✅ Snapshot for $network - $node_type has been downloaded and extracted successfully!"
