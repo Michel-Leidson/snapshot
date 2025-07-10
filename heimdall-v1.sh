@@ -9,7 +9,7 @@ if [[ "$SNAP_NAME" != "heimdall-v1" || "$CHAIN" != "mainnet" ]]; then
   echo "[✗] Invalid usage!"
   echo "This script can only be run with the parameters:"
   echo "  heimdall-v1 mainnet"
-  echo "Exemplo correto:"
+  echo "Exemple correct:"
   echo "  bash sheimdall-v1.sh heimdall-v1 mainnet"
   exit 1
 fi
