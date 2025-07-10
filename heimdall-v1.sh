@@ -1,23 +1,30 @@
 #!/bin/bash
 
-# Argumentos
+
 SNAP_NAME="$1"
 CHAIN="$2"
 
-if [ -z "$SNAP_NAME" ] || [ -z "$CHAIN" ]; then
-  echo "[✗] Uso: $0 <snapshot-name> <chain-name>"
-  echo "Exemplo: $0 heimdall-v1 mainnet"
+
+if [[ "$SNAP_NAME" != "heimdall-v1" || "$CHAIN" != "mainnet" ]]; then
+  echo "[✗] Invalid usage!"
+  echo "This script can only be run with the parameters:"
+  echo "  heimdall-v1 mainnet"
+  echo "Exemplo correto:"
+  echo "  bash sheimdall-v1.sh heimdall-v1 mainnet"
   exit 1
 fi
 
-DOWNLOAD_URL="https://snap.stakepool.work/snapshots-stakepool/${SNAP_NAME}-download-list.txt"
-ORIGINAL_LIST="${SNAP_NAME}-download-list.txt"
+# Parâmetros fixos
+DOWNLOAD_URL="https://snap.stakepool.work/snapshots-stakepool/heimdall-download-list.txt"
+ORIGINAL_LIST="heimdall-download-list.txt"
 WORK_LIST="tmp-download-list.txt"
+
 trap 'rm -f "$WORK_LIST" missing.txt' EXIT
 MAX_RETRIES=5
 RETRY=1
 
-echo "[*] Downloading file list..."
+echo "[*] Downloading fixed snapshot file list for 'heimdall'..."
+echo "[*] Source: $DOWNLOAD_URL"
 if ! curl -fsSL "$DOWNLOAD_URL" -o "$ORIGINAL_LIST"; then
   echo "[✗] Failed to download the file list from: $DOWNLOAD_URL"
   exit 1
