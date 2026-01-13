@@ -18,9 +18,6 @@ mode=$3
 
 snapshot_list_url="https://snap.stakepool.work/snapshots-stakepool/list_snapshots.txt"
 
-# ==========================================
-# Seleciona snapshots relevantes
-# ==========================================
 case $mode in
     stateless)
         relevant_snapshots=$(curl -s "$snapshot_list_url" | grep "$network" | grep "$node_type" | grep stateless)
