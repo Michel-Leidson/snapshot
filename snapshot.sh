@@ -80,7 +80,7 @@ fi
 echo "================================================"
 echo ""
 read -p "Continue? (y/N): " -n 1 -r
-
+echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     echo "Operation cancelled."
     exit 1
