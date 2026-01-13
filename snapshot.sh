@@ -88,7 +88,6 @@ if [ $hours_max -lt 1 ]; then
     hours_max=1
 fi
 
-echo "⏱️  Estimated time: ${hours_min}-${hours_max} hours"
 echo "💡 Monitor with: watch -n 30 'df -h .'"
 
 (
