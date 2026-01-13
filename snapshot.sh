@@ -17,7 +17,6 @@ mode=$3
 
 snapshot_list_url="https://snap.stakepool.work/snapshots-stakepool/list_snapshots.txt"
 
-
 case $mode in
     stateless)
         relevant_snapshots=$(curl -s "$snapshot_list_url" | grep "$network" | grep "$node_type" | grep stateless)
@@ -46,7 +45,6 @@ latest_snapshot=$(echo "$relevant_snapshots" | sort -k1,1r -k2,2r | head -n 1)
 snapshot_file=$(echo "$latest_snapshot" | awk '{print $4}')
 snapshot_size=$(echo "$latest_snapshot" | awk '{print $3}')
 
-
 snapshot_gb=$((snapshot_size / 1000000000))
 
 url="https://snap.stakepool.work/snapshots-stakepool/$snapshot_file"
@@ -62,14 +60,12 @@ echo "Snapshot size: ~${snapshot_gb}GB"
 echo "Your free space: ${available_human} (${available_gb}GB)"
 echo ""
 
-
 if [ "$available_gb" -lt "$snapshot_gb" ]; then
     echo "❌ ERROR: Not enough space for compressed snapshot!"
     echo "❌ Need at least ${snapshot_gb}GB, but only have ${available_gb}GB"
     echo "❌ Try: ./$0 $network $node_type pruned   (for smaller snapshot)"
     exit 1
 fi
-
 
 if [ "$available_gb" -lt "$((snapshot_gb * 13 / 10))" ]; then
     echo "⚠️  WARNING: Space may be tight"
@@ -79,19 +75,18 @@ fi
 
 echo "================================================"
 echo ""
-echo -n "Continue? (y/N): "
-read -r
+
+read -p "Continue? (y/N): " -r
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     echo "Operation cancelled."
     exit 1
 fi
+
 echo "🚀 Starting download + extraction..."
 echo "URL: $url"
 
-
 hours_min=$((snapshot_gb / 100))  
 hours_max=$((snapshot_gb / 20))   
-
 
 if [ $hours_min -lt 1 ]; then
     hours_min=1
@@ -103,9 +98,7 @@ fi
 echo "⏱️  Estimated time: ${hours_min}-${hours_max} hours"
 echo "💡 Monitor with: watch -n 30 'df -h .'"
 
-
 (
-    
     warning_gb=$((snapshot_gb / 5))
     if [ $warning_gb -lt 50 ]; then
         warning_gb=50
@@ -138,15 +131,12 @@ echo "💡 Monitor with: watch -n 30 'df -h .'"
 ) &
 monitor_pid=$!
 
-
 trap "echo 'Stopping...'; kill $monitor_pid 2>/dev/null; exit 1" INT TERM
-
 
 case "$snapshot_file" in
     *.tar.zst)
         echo "🔧 Using zstd decompression..."
         
-       
         if ! command -v zstd >/dev/null 2>&1; then
             echo "❌ zstd not installed. Install with:"
             echo "   Ubuntu/Debian: sudo apt install zstd"
@@ -155,7 +145,6 @@ case "$snapshot_file" in
             exit 1
         fi
         
-      
         wget -c --retry-connrefused --timeout=60 \
              --read-timeout=300 --inet4-only \
              --show-progress \
@@ -167,7 +156,6 @@ case "$snapshot_file" in
     *.tar.lz4)
         echo "🔧 Using lz4 decompression..."
         
-        
         if ! command -v lz4 >/dev/null 2>&1; then
             echo "❌ lz4 not installed. Install with:"
             echo "   Ubuntu/Debian: sudo apt install lz4"
@@ -176,7 +164,6 @@ case "$snapshot_file" in
             exit 1
         fi
         
-       
         wget -c --retry-connrefused --timeout=60 \
              --read-timeout=120 --inet4-only \
              --show-progress \
@@ -192,9 +179,7 @@ case "$snapshot_file" in
         ;;
 esac
 
-
 kill $monitor_pid 2>/dev/null
-
 
 end_time=$SECONDS
 hours=$((end_time / 3600))
@@ -207,7 +192,6 @@ echo "✅ SUCCESS! Snapshot extracted."
 echo "⏱️  Time: ${hours}h ${minutes}m ${seconds}s"
 echo "💾 Final free space: $(df -h . | awk 'NR==2 {print $4}')"
 echo "================================================"
-
 
 echo ""
 echo "📁 Extracted contents:"
