@@ -18,6 +18,9 @@ mode=$3
 
 snapshot_list_url="https://snap.stakepool.work/snapshots-stakepool/list_snapshots.txt"
 
+# ==========================================
+# Seleciona snapshots relevantes
+# ==========================================
 case $mode in
     stateless)
         relevant_snapshots=$(curl -s "$snapshot_list_url" | grep "$network" | grep "$node_type" | grep stateless)
@@ -46,15 +49,34 @@ latest_snapshot=$(echo "$relevant_snapshots" | sort -k1,1r -k2,2r | head -n 1)
 snapshot_file=$(echo "$latest_snapshot" | awk '{print $4}')
 url="https://snap.stakepool.work/snapshots-stakepool/$snapshot_file"
 
+TMP_FILE="/tmp/${snapshot_file}.part"
+
 echo "Downloading and extracting the latest snapshot for $network - $node_type - $mode..."
 echo "Snapshot URL: $url"
+echo "Temporary file for download: $TMP_FILE"
 
 case "$snapshot_file" in
     *.tar.zst)
-        wget -c --retry-connrefused --timeout=60 --read-timeout=120 --inet4-only "$url" -O - | zstdcat | tar -xf -
+        echo "➡️ Downloading snapshot .tar.zst"
+        wget -c --retry-connrefused --timeout=60 --read-timeout=120 --inet4-only \
+            "$url" -O "$TMP_FILE"
+
+        echo "➡️ Extract snapshot"
+        zstd -d "$TMP_FILE" --stdout | tar -x --overwrite -f -
+
+        echo "➡️ Remove file temp"
+        rm -f "$TMP_FILE"
         ;;
     *.tar.lz4)
-        wget -c --retry-connrefused --timeout=60 --read-timeout=120 --inet4-only "$url" -O - | lz4 -dc | tar -xf -
+        echo "➡️ Downloading snapshot .tar.lz4 "
+        wget -c --retry-connrefused --timeout=60 --read-timeout=120 --inet4-only \
+            "$url" -O "$TMP_FILE"
+
+        echo "➡️ Extract snapshot"
+        lz4 -dc "$TMP_FILE" | tar -x --overwrite -f -
+
+        echo "➡️ Remove file temp"
+        rm -f "$TMP_FILE"
         ;;
     *)
         echo "❌ Unknown snapshot format: $snapshot_file"
