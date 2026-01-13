@@ -66,16 +66,15 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     exit 1
 fi
 
-echo "🚀 Starting simultaneous download+extraction..."
+echo "🚀 Starting simultaneous download+extraction (silent mode)..."
 echo "Snapshot URL: $url"
-
+echo "This may take several hours. Monitor with 'df -h .' in another terminal."
 
 (
     while true; do
         free_gb=$(df -BG . | awk 'NR==2 {print $4}' | sed 's/G//')
-        echo -ne "📊 Current free space: ${free_gb}GB\r"
         
-       
+        
         if [ "$free_gb" -lt 100 ]; then
             echo ""
             echo "🚨🚨🚨 DANGER: Only ${free_gb}GB remaining!"
@@ -83,7 +82,7 @@ echo "Snapshot URL: $url"
             echo "🚨 Recommended to stop (Ctrl+C) and free space!"
         fi
         
-        
+       
         if [ "$free_gb" -lt 20 ]; then
             echo ""
             echo "💀💀💀 EMERGENCY: ONLY ${free_gb}GB REMAINING!"
@@ -104,39 +103,26 @@ trap "echo 'Interrupted by user. Stopping...'; kill $monitor_pid 2>/dev/null; ex
 
 case "$snapshot_file" in
     *.tar.zst)
-        echo "📦 Using zstd for decompression..."
+        echo "📦 Using zstd for decompression (silent)..."
         
        
         wget -c --retry-connrefused --timeout=60 \
              --read-timeout=300 --inet4-only \
-             --show-progress \  
-             "$url" -O - 2>&1 | \
-        tee >( 
-            
-            stdbuf -o0 zstdcat --memory=512M | 
-            stdbuf -o0 tar -xf - \
-                --checkpoint=100000 \  
-                --checkpoint-action="echo=📦 Extracted %T files" \
-                --warning=no-ignore-newer \
-                2>&1
-        ) | \
-       
-        while read line; do
-            if [[ $line =~ [0-9]+\% ]]; then
-                free_gb=$(df -BG . | awk 'NR==2 {print $4}')
-                echo -ne "⬇️  $line | 💾 Free: $free_gb\r"
-            fi
-        done
+             --show-progress \
+             "$url" -O - | \
+        zstdcat --memory=512M --quiet 2>/dev/null | \
+        tar -xf - --warning=no-ignore-newer 2>/dev/null
+        
         ;;
         
     *.tar.lz4)
-        echo "📦 Using lz4 for decompression..."
+        echo "📦 Using lz4 for decompression (silent)..."
         wget -c --retry-connrefused --timeout=60 \
-             --read-timeout=120 --inet4-only "$url" -O - | \
-        lz4 -dc | \
-        tar -xf - \
-            --checkpoint=100000 \  
-            --checkpoint-action="echo=📦 Extracted %T files"
+             --read-timeout=120 --inet4-only \
+             --show-progress \
+             "$url" -O - | \
+        lz4 -dc 2>/dev/null | \
+        tar -xf - 2>/dev/null
         ;;
         
     *)
@@ -145,7 +131,6 @@ case "$snapshot_file" in
         exit 1
         ;;
 esac
-
 
 kill $monitor_pid 2>/dev/null
 echo ""
