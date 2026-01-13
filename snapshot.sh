@@ -18,7 +18,6 @@ mode=$3
 
 snapshot_list_url="https://snap.stakepool.work/snapshots-stakepool/list_snapshots.txt"
 
-
 case $mode in
     stateless)
         relevant_snapshots=$(curl -s "$snapshot_list_url" | grep "$network" | grep "$node_type" | grep stateless)
@@ -76,7 +75,7 @@ echo "Snapshot URL: $url"
         free_gb=$(df -BG . | awk 'NR==2 {print $4}' | sed 's/G//')
         echo -ne "📊 Current free space: ${free_gb}GB\r"
         
-        
+       
         if [ "$free_gb" -lt 100 ]; then
             echo ""
             echo "🚨🚨🚨 DANGER: Only ${free_gb}GB remaining!"
@@ -107,28 +106,25 @@ case "$snapshot_file" in
     *.tar.zst)
         echo "📦 Using zstd for decompression..."
         
-        
+       
         wget -c --retry-connrefused --timeout=60 \
              --read-timeout=300 --inet4-only \
-             --progress=dot:giga \
+             --show-progress \  
              "$url" -O - 2>&1 | \
         tee >( 
             
             stdbuf -o0 zstdcat --memory=512M | 
             stdbuf -o0 tar -xf - \
-                2>&1 | \
-            while read line; do
-                
-                if [[ $line =~ Extracted ]]; then
-                    echo "$line"
-                fi
-            done
+                --checkpoint=100000 \  
+                --checkpoint-action="echo=📦 Extracted %T files" \
+                --warning=no-ignore-newer \
+                2>&1
         ) | \
-        
+       
         while read line; do
             if [[ $line =~ [0-9]+\% ]]; then
                 free_gb=$(df -BG . | awk 'NR==2 {print $4}')
-                echo -ne "⬇️  Download: $line | 💾 Free: $free_gb\r"
+                echo -ne "⬇️  $line | 💾 Free: $free_gb\r"
             fi
         done
         ;;
@@ -138,8 +134,9 @@ case "$snapshot_file" in
         wget -c --retry-connrefused --timeout=60 \
              --read-timeout=120 --inet4-only "$url" -O - | \
         lz4 -dc | \
-        tar -xf - 
-            
+        tar -xf - \
+            --checkpoint=100000 \  
+            --checkpoint-action="echo=📦 Extracted %T files"
         ;;
         
     *)
